@@ -14,7 +14,7 @@
 İlerde başka fonksiyonlar da eklenecektir.
 
 Şu anki hali pre-alpha bile değil,
-hayırlısı diyelim."
+hayırlısı diyelim..."
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
