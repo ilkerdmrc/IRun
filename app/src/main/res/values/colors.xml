@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="colorIcons">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="topbarred">#ff070b</color>
+    <color name="lightgoldenrodyellow">	#FAFAD2</color>
+    <color name="sapphire">#2E5894</color>
+    <color name="ocean">#07575B</color>
+    <color name="seafoam">#C4DFE6</color>
+    <color name="deepaqua">#003B46</color>
+    <color name="wave">#66A5AD</color>
+    <color name="pumpkin">#D55448</color>
+    <color name="cotton">#F9F9FF</color>
+    <color name="canteloupe">#FFA577</color>
+    <color name="deneme">#FDEEEE</color>
+    <color name="dandelion">#F0E130</color>
+
+</resources>

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "988538406904",
+    "firebase_url": "https://irun-d4af5.firebaseio.com",
+    "project_id": "irun-d4af5",
+    "storage_bucket": "irun-d4af5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:988538406904:android:c0b58ae0ff1b6607",
+        "android_client_info": {
+          "package_name": "com.idemirci.irun"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "988538406904-q1a958q81trloojvgmqcvu4tvc36ph5u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.idemirci.irun",
+            "certificate_hash": "fa990a4eb98df78f7c6cd4983caa163b2d5415a3"
+          }
+        },
+        {
+          "client_id": "988538406904-dr1th0u4m89au8h3qc220jon7lg7p7rq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdGphOm9Y23BCnMhyItrSLTDdJuir45mg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "988538406904-dr1th0u4m89au8h3qc220jon7lg7p7rq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

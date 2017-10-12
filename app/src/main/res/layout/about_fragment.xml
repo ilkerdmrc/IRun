@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:padding="20dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:id="@+id/about_tv"
+        android:gravity="center_horizontal"
+        android:text="Koşu takip uygulaması.
+  Koşulan toplam mesafeyi ve ortalama hızı kullanıcıya iletir.
+
+İlerde başka fonksiyonlar da eklenecektir.
+
+Şu anki hali pre-alpha bile değil,
+hayırlısı diyelim."
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

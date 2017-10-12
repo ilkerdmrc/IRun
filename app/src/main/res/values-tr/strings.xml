@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">IRun Turkish</string>
+    <string name="action_settings">Ayarlar</string>
+    <string name="app_icon_name">IRun</string>
+    <string name="menu_run_command">Koşuya Başla</string>
+    <string name="menu_history">Koşu Geçmişi</string>
+    <string name="menu_about">Uyguluma Hakkında</string>
+    <string name="menu_communicate_title">Sosyal</string>
+    <string name="menu_share">Paylaş</string>
+    <string name="menu_message">Mesajlar</string>
+    <string name="menu_logout">Çıkış Yap</string>
+    <string name="run_fragment_title">KOŞU</string>
+    <string name="about_fragment_title">Uygulama Hakkında</string>
+    <string name="history_fragment_title">GEÇMİŞ</string>
+    <string name="share_fragment_title">PAYLAŞ</string>
+    <string name="messages_fragment_title">Mesajlar</string>
+    <string name="run_fragment_start_button">BAŞLA</string>
+    <string name="action_activity_start_button">BAŞLA</string>
+    <string name="action_activity_pause_button">DUR</string>
+    <string name="action_activity_restart_button">SIFIRLA</string>
+    <string name="history_fragment_activity_date">Aktivite Tarihi</string>
+    <string name="history_fragment_avg_speed">Ortalama Hız</string>
+    <string name="history_fragment_total_distance">Katedilen Mesafe</string>
+    <string name="history_fragment_total_time">Süre</string>
+    <string name="last_run_result_fragment_title">Koşu Özeti</string>
+</resources>
