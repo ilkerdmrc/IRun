@@ -92,7 +92,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return res;
     }
 
-    public String getCurrentTotalDistance(String runId){
+    public float getCurrentTotalDistance(String runId){
         float formattedDistance = 0;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("select SUM(deltaDistance) as totalDistance from routes " +
@@ -101,10 +101,10 @@ public class DBHelper extends SQLiteOpenHelper {
         if(cursor != null){
             cursor.moveToFirst();
             float totalDistance = cursor.getFloat(cursor.getColumnIndex("totalDistance"));
-            formattedDistance = ((float) Math.round(Math.abs(totalDistance)))/1000;
+            formattedDistance = ((float) Math.round(Math.abs(totalDistance)));
 
         }
-        return String.valueOf(formattedDistance);
+        return formattedDistance;
     }
 
 }

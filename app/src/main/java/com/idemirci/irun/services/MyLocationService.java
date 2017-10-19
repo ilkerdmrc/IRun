@@ -17,6 +17,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -27,8 +28,10 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -51,7 +54,7 @@ public class MyLocationService extends Service {
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
-    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 4000;
 
     /**
      * The fastest rate for active location updates. Exact. Updates will never be more frequent
@@ -100,7 +103,7 @@ public class MyLocationService extends Service {
      * Tracks the status of the location updates request. Value changes when the user presses the
      * Start Updates and Stop Updates buttons.
      */
-    private Boolean mRequestingLocationUpdates;
+    private boolean mRequestingLocationUpdates;
 
     /**
      * Time when the location was updated represented as a String.
@@ -238,10 +241,43 @@ public class MyLocationService extends Service {
         if (mCurrentLocation != null) {
             // TODO : service broadcast
             Intent i = new Intent("location_update");
-            i.putExtra("coordinates",mCurrentLocation);
+            i.putExtra("coordinates", mCurrentLocation);
             sendBroadcast(i);
         }
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+
+
+
+    /**
+     * Removes location updates from the FusedLocationApi.
+     */
+    public void stopLocationUpdates() {
+        if (!mRequestingLocationUpdates) {
+            Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
+            return;
+        }
+
+        // It is a good practice to remove location requests when the activity is in a paused or
+        // stopped state. Doing so helps battery performance and is especially
+        // recommended in applications that request frequent location updates.
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        mRequestingLocationUpdates = false;
+                        Log.i(TAG, "stopLocationUpdates: removeLocationUpdates onComplete.");
+                    }
+                });
+    }
+
+
+
 }
 
 

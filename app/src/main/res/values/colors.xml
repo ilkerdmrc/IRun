@@ -15,7 +15,11 @@
     <color name="pumpkin">#D55448</color>
     <color name="cotton">#F9F9FF</color>
     <color name="canteloupe">#FFA577</color>
-    <color name="deneme">#FDEEEE</color>
+    <color name="whiteish">#FFDEDE</color>
     <color name="dandelion">#F0E130</color>
+    <color name="greengray">#4A5A4A</color>
+    <color name="mandarin">#ff9400</color>
+    <color name="orange">#FFA500</color>
+    <color name="civit">#450082</color>
 
 </resources>

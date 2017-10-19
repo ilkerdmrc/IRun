@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -33,6 +35,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -40,6 +43,11 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.idemirci.irun.R;
 import com.idemirci.irun.SplashActivity;
 import com.idemirci.irun.services.MyLocationService;
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 
 public class RunFragment extends Fragment implements OnMapReadyCallback {
@@ -128,6 +136,13 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
         getActivity().setTitle(R.string.run_fragment_title);
 
         Button btnStart = (Button) getActivity().findViewById(R.id.btnStart);
+
+        AssetManager am = getContext().getApplicationContext().getAssets();
+        Typeface typeface = Typeface.createFromAsset(am,
+                String.format("fonts/%s", "bitsumis.ttf"));
+
+        btnStart.setTypeface(typeface);
+
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -156,6 +171,20 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         MapsInitializer.initialize(getContext());
         mGoogleMap = googleMap;
+
+        com.luckycatlabs.sunrisesunset.dto.Location location = new com.luckycatlabs.sunrisesunset.dto.Location(40.973248, 28.722694);
+        SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(location, "Europe/Istanbul");
+
+        String officialSunrise = calculator.getOfficialSunriseForDate(Calendar.getInstance());
+        Calendar officialSunset = calculator.getOfficialSunsetCalendarForDate(Calendar.getInstance());
+        String sunset = officialSunset.getTime().toString();
+
+        Log.i("x", "Sunrise : " + officialSunrise);
+        Log.i("x", "Sunset : " + sunset);
+
+        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.night);
+        mGoogleMap.setMapStyle(style);
+
     }
 
     public void animateMarker(final Marker marker, final Location location) {

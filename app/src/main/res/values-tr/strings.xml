@@ -24,4 +24,6 @@
     <string name="history_fragment_total_distance">Katedilen Mesafe</string>
     <string name="history_fragment_total_time">Süre</string>
     <string name="last_run_result_fragment_title">Koşu Özeti</string>
+    <string name="action_activity_kilometer">Kilometre</string>
+    <string name="action_activity_meter">METRE</string>
 </resources>

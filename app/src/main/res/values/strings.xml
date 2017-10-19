@@ -37,5 +37,9 @@
     <string name="history_fragment_activity_date">Activity Date</string>
     <string name="last_run_result_fragment_title">Run Summary</string>
 
+    <!-- Mix -->
+    <string name="action_activity_kilometer">KILOMETER</string>
+    <string name="action_activity_meter">METER</string>
+
 
 </resources>
