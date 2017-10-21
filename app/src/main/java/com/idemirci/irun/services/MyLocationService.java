@@ -39,7 +39,7 @@ import java.util.Locale;
 
 public class MyLocationService extends Service {
 
-    private static final String TAG = MyLocationService.class.getSimpleName();
+    private static final String TAG = "MyLocationService";//MyLocationService.class.getSimpleName();
 
     /**
      * Code used in requesting runtime permissions.
@@ -120,6 +120,8 @@ public class MyLocationService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        Log.i(TAG, "mRequestingLocationUpdates onCreate");
+
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getApplicationContext());
         mSettingsClient = LocationServices.getSettingsClient(getApplicationContext());
 
@@ -193,6 +195,9 @@ public class MyLocationService extends Service {
      */
     private void startLocationUpdates() {
         // Begin by checking if the device has the necessary location settings.
+        Log.i(TAG, "startLocationUpdates started...");
+        mRequestingLocationUpdates = true;
+        Log.i(TAG, "mRequestingLocationUpdates - 3");
         mSettingsClient.checkLocationSettings(mLocationSettingsRequest)
                 .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
                     @Override
@@ -220,6 +225,7 @@ public class MyLocationService extends Service {
                                         "fixed here. Fix in Settings.";
                                 Log.e(TAG, errorMessage);
                                 mRequestingLocationUpdates = false;
+                                Log.i(TAG, "mRequestingLocationUpdates - 1");
                         }
 
                         updateUI();
@@ -257,6 +263,7 @@ public class MyLocationService extends Service {
     /**
      * Removes location updates from the FusedLocationApi.
      */
+    /*
     public void stopLocationUpdates() {
         if (!mRequestingLocationUpdates) {
             Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
@@ -271,13 +278,27 @@ public class MyLocationService extends Service {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         mRequestingLocationUpdates = false;
+                        Log.i(TAG, "mRequestingLocationUpdates - 2");
                         Log.i(TAG, "stopLocationUpdates: removeLocationUpdates onComplete.");
                     }
-                });
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.i(TAG, "stopLocationUpdates onFailure : " + e.toString());
+                    }
+                })
+        ;
     }
 
 
+    */
 
+    @Override
+    public boolean stopService(Intent name) {
+        Log.i(TAG, "....stopService...");
+        return super.stopService(name);
+    }
 }
 
 

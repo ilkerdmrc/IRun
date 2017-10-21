@@ -139,7 +139,7 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
 
         AssetManager am = getContext().getApplicationContext().getAssets();
         Typeface typeface = Typeface.createFromAsset(am,
-                String.format("fonts/%s", "bitsumis.ttf"));
+                String.format("fonts/%s", "italic.ttf"));
 
         btnStart.setTypeface(typeface);
 

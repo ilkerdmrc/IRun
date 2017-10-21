@@ -4,5 +4,5 @@
         android:drawable="@drawable/button_oval_pressed" /> <!-- pressed -->
     <item android:state_focused="true"
         android:drawable="@drawable/button_oval_focused" /> <!-- focused -->
-    <item android:drawable="@drawable/shadowdeneme" /> <!-- default -->
+    <item android:drawable="@drawable/button_oval_normal" /> <!-- default -->
 </selector>

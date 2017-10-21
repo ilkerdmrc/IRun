@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.media.Image;
 import android.os.Bundle;
@@ -37,7 +38,7 @@ public class ActionActivity extends AppCompatActivity {
     private TextView action_txt, totalDistance_txt, kilometer_txt;
     private Chronometer mChronometer;
     long mLastStopTime = 0;
-    Button btnStart = null;
+    Button btnStart, btnPause, btnRestart, btnStop= null;
     private ImageView clock_icon;
 
     private BroadcastReceiver broadcastReceiver;
@@ -133,24 +134,26 @@ public class ActionActivity extends AppCompatActivity {
 
         mChronometer = (Chronometer) findViewById(R.id.chronometer);
         btnStart = (Button) findViewById(R.id.start_button);
-        final Button btnPause = (Button) findViewById(R.id.pause_button);
-        Button btnRestart = (Button) findViewById(R.id.restart_button);
+        btnPause = (Button) findViewById(R.id.pause_button);
+        btnRestart = (Button) findViewById(R.id.restart_button);
+        btnStop = (Button) findViewById(R.id.stop_button);
         action_txt = (TextView) findViewById(R.id.action_txt);
         totalDistance_txt = (TextView) findViewById(R.id.totalDistance_txt);
         kilometer_txt = (TextView) findViewById(R.id.kilometer_txt);
-        clock_icon = (ImageView) findViewById(R.id.clock_icon);
+
 
 
         AssetManager am = getBaseContext().getApplicationContext().getAssets();
         Typeface typeface = Typeface.createFromAsset(am,
-                String.format("fonts/%s", "Purpose-advance.ttf"));
+                String.format("fonts/%s", "Sport.ttf"));
 
         mChronometer.setTypeface(typeface);
         totalDistance_txt.setTypeface(typeface);
         action_txt.setTypeface(typeface);
+        kilometer_txt.setTypeface(typeface);
 
         chronoStart();
-        btnStart.setEnabled(false);
+        btnStart.setVisibility(View.GONE);
 
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -179,11 +182,35 @@ public class ActionActivity extends AppCompatActivity {
             }
         });
 
+        btnStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(ActionActivity.this);
+
+                builder.setMessage("Aktiviteyi sonlandırmak istediğinize emin misiniz?");
+
+                builder.setPositiveButton("Evet", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        goResult();
+                        ActionActivity.super.onBackPressed();
+                    }
+                });
+                builder.setNegativeButton("Hayır", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+                builder.show();
+            }
+        });
+
     }
 
     private void chronoStart() {
         Log.i(TAG, "chronoStart ...");
         startLocationService();
+        btnStart.setVisibility(View.GONE);
+        btnPause.setVisibility(View.VISIBLE);
 
         if ( mLastStopTime == 0 )
             mChronometer.setBase( SystemClock.elapsedRealtime() );
@@ -191,14 +218,14 @@ public class ActionActivity extends AppCompatActivity {
             long intervalOnPause = (SystemClock.elapsedRealtime() - mLastStopTime);
             mChronometer.setBase( mChronometer.getBase() + intervalOnPause );
         }
-
         mChronometer.start();
     }
 
 
     private void chronoPause(){
         Log.i(TAG, "chronoPause ...");
-        btnStart.setEnabled(true);
+        btnPause.setVisibility(View.GONE);
+        btnStart.setVisibility(View.VISIBLE);
         stopLocationService();
         mChronometer.stop();
         mLastStopTime = SystemClock.elapsedRealtime();
@@ -221,11 +248,16 @@ public class ActionActivity extends AppCompatActivity {
     }
 
     private void stopLocationService(){
-        Log.i(TAG, "stopLocationService ....");
-        MyLocationService myLocService = new MyLocationService();
-        myLocService.stopLocationUpdates();
-        Intent iService =new Intent(getApplicationContext(),MyLocationService.class);
-        stopService(iService);
+        Log.i(TAG, "stopLocationService ..........");
+        //MyLocationService myLocService = new MyLocationService();
+        //myLocService.stopLocationUpdates();
+        Intent iService =new Intent(ActionActivity.this, MyLocationService.class);
+        boolean result = stopService(iService);
+        if(result){
+            Log.i(TAG, "stopService ok...");
+        }else{
+            Log.i(TAG, "stopService Nok!!!!!...");
+        }
     }
 
 
@@ -248,22 +280,7 @@ public class ActionActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        builder.setMessage("Kosudan cikilsin mi? ");
-
-        builder.setPositiveButton("Evet", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                goResult();
-                ActionActivity.super.onBackPressed();
-            }
-        });
-        builder.setNegativeButton("Hayır", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        });
-        builder.show();
     }
 
     private void goResult() {
