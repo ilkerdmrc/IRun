@@ -43,7 +43,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.idemirci.irun.R;
 import com.idemirci.irun.SplashActivity;
 import com.idemirci.irun.services.MyLocationService;
-import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+//import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -171,7 +171,7 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         MapsInitializer.initialize(getContext());
         mGoogleMap = googleMap;
-
+/*
         com.luckycatlabs.sunrisesunset.dto.Location location = new com.luckycatlabs.sunrisesunset.dto.Location(40.973248, 28.722694);
         SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(location, "Europe/Istanbul");
 
@@ -181,9 +181,10 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
 
         Log.i("x", "Sunrise : " + officialSunrise);
         Log.i("x", "Sunset : " + sunset);
-
-        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.night);
+*/
+        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.light);
         mGoogleMap.setMapStyle(style);
+
 
     }
 

@@ -15,7 +15,7 @@ import java.util.Date;
 
 
 public class LastRunResultActivity extends AppCompatActivity {
-
+    public static final String TAG = "DB_ERR_LOG";
     private DBHelper dbHelper;
     private RouteListAdapter empListAdapter;
 
@@ -35,32 +35,36 @@ public class LastRunResultActivity extends AppCompatActivity {
 
         String runId = getIntent().getExtras().getString("runId");
         int totalTime = getIntent().getExtras().getInt("totalTime");
+        Cursor cursor = null;
 
-        Cursor cursor = dbHelper.getRouteSummaryByRunId(runId);
+        try{
+            cursor = dbHelper.getRouteSummaryByRunId(runId);
 
-        if(cursor != null){
-            // Feed summary
-            Log.i("Feed summary : ", "Before Feed summary...");
+            if(cursor != null && cursor.moveToFirst()){
+                // Feed summary
+                Log.i("Feed summary  : ", "Feed summary inside...");
+                float totalDistance = cursor.getFloat(cursor.getColumnIndex("deltaDistance"));
+                float avgSpeed = cursor.getFloat(cursor.getColumnIndex("speed"));
+                SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+                String dt = sdf.format(new Date());
 
-            cursor.moveToFirst();
+                dbHelper.insertRouteSummary(runId, avgSpeed, totalDistance, totalTime, dt);
+                Log.i("insertRouteSummary : ", "insertRouteSummary ok...");
 
-            Log.i("Feed summary  : ", "Feed summary inside...");
-            float totalDistance = cursor.getFloat(cursor.getColumnIndex("deltaDistance"));
-            float avgSpeed = cursor.getFloat(cursor.getColumnIndex("speed"));
-            SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-            String dt = sdf.format(new Date());
+                //--- Set Display Values
+                String formattedTotalDistance = String.format("%.2f", totalDistance);
+                String formattedAvgSpeed = String.format("%.2f", avgSpeed);
 
-            dbHelper.insertRouteSummary(runId, avgSpeed, totalDistance, totalTime, dt);
-            Log.i("insertRouteSummary : ", "insertRouteSummary ok...");
-
-            //--- Set Display Values
-            String formattedTotalDistance = String.format("%.2f", totalDistance);
-            String formattedAvgSpeed = String.format("%.2f", avgSpeed);
-
-            total_distance_txt.setText(formattedTotalDistance);
-            result_speed_txt.setText(formattedAvgSpeed);
-            result_time_txt.setText("" + totalTime);
-            result_date_txt.setText(dt);
+                total_distance_txt.setText(formattedTotalDistance);
+                result_speed_txt.setText(formattedAvgSpeed);
+                result_time_txt.setText("" + totalTime);
+                result_date_txt.setText(dt);
+            }
+        } catch (final Exception e) {
+            Log.e(TAG, "getRouteSummaryByRunId DB ERROR for runId : " + runId + " : "+ e.toString());
+        } finally {
+            cursor.close();
+            dbHelper.close();
         }
     }
 }

@@ -30,6 +30,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.idemirci.irun.fragments.AboutFragment;
+import com.idemirci.irun.fragments.GuideFragment;
 import com.idemirci.irun.fragments.HistroyFragment;
 import com.idemirci.irun.fragments.RunFragment;
 
@@ -158,6 +159,9 @@ public class NavActivity extends AppCompatActivity
                 break;
             case R.id.nav_about:
                 fragment = new AboutFragment();
+                break;
+            case R.id.nav_guide:
+                fragment = new GuideFragment();
                 break;
         }
 

@@ -17,6 +17,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.ImageButton;
@@ -35,24 +37,25 @@ import java.util.Random;
 
 public class ActionActivity extends AppCompatActivity {
 
+    public static final String TAG = "MyLog";
     private TextView action_txt, totalDistance_txt, kilometer_txt;
     private Chronometer mChronometer;
     long mLastStopTime = 0;
-    Button btnStart, btnPause, btnRestart, btnStop= null;
-    private ImageView clock_icon;
+    private Button btnStart, btnPause, btnRestart, btnStop= null;
+    private Animation pulse;
 
+    private ImageView clock_icon;
     private BroadcastReceiver broadcastReceiver;
     private DBHelper dbHelper;
     private String runId;
+
     private int totalTime;
-
     static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
     static Random rnd = new Random();
-
     Location prevLocation;
-    Location curLocation;
 
-    public static final String TAG = "ActionDB";
+    private boolean invokedByPause;
 
     private String generateRunId(int len) {
         StringBuilder sb = new StringBuilder(len);
@@ -79,6 +82,14 @@ public class ActionActivity extends AppCompatActivity {
                         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
                         String dt = sdf.format(new Date());
 
+                        if(invokedByPause){
+                            Log.i(TAG, "invokedByPause true");
+                            prevLocation = null;
+                            invokedByPause = false;
+                        }else{
+                            Log.i(TAG, "invokedByPause false");
+                        }
+
                         if(prevLocation != null){
                             deltaDistance  = loc.distanceTo(prevLocation);
                         }
@@ -92,7 +103,9 @@ public class ActionActivity extends AppCompatActivity {
                         Log.i(TAG, "Lat : " + lat);
                         Log.i(TAG, "Lng : " + lng);
 
-                        if(dbHelper != null){
+                        //speed = 1; // TODO : Delete!
+
+                        if(dbHelper != null && speed > 0 && deltaDistance > 0 ){
                             dbHelper.insertRoute(runId, lat, lng, Math.abs(deltaDistance), speed, dt );
                             Log.i(TAG, "Lokasyon Data kaydedildi...");
                             float currentTotalDistance = dbHelper.getCurrentTotalDistance(runId);
@@ -104,6 +117,8 @@ public class ActionActivity extends AppCompatActivity {
                                 kilometer_txt.setText(getResources().getString(R.string.action_activity_kilometer));
                             }
 
+                        }else{
+                            Log.i(TAG, "No requirement data to save DB");
                         }
                     }
                 }
@@ -128,10 +143,6 @@ public class ActionActivity extends AppCompatActivity {
 
         runId = "run_" + generateRunId(3);
         dbHelper = new DBHelper(this);
-
-
-
-
         mChronometer = (Chronometer) findViewById(R.id.chronometer);
         btnStart = (Button) findViewById(R.id.start_button);
         btnPause = (Button) findViewById(R.id.pause_button);
@@ -140,8 +151,7 @@ public class ActionActivity extends AppCompatActivity {
         action_txt = (TextView) findViewById(R.id.action_txt);
         totalDistance_txt = (TextView) findViewById(R.id.totalDistance_txt);
         kilometer_txt = (TextView) findViewById(R.id.kilometer_txt);
-
-
+        pulse = AnimationUtils.loadAnimation(this, R.anim.pulse);
 
         AssetManager am = getBaseContext().getApplicationContext().getAssets();
         Typeface typeface = Typeface.createFromAsset(am,
@@ -209,6 +219,7 @@ public class ActionActivity extends AppCompatActivity {
     private void chronoStart() {
         Log.i(TAG, "chronoStart ...");
         startLocationService();
+        mChronometer.clearAnimation();
         btnStart.setVisibility(View.GONE);
         btnPause.setVisibility(View.VISIBLE);
 
@@ -226,8 +237,10 @@ public class ActionActivity extends AppCompatActivity {
         Log.i(TAG, "chronoPause ...");
         btnPause.setVisibility(View.GONE);
         btnStart.setVisibility(View.VISIBLE);
+        mChronometer.setAnimation(pulse);
         stopLocationService();
         mChronometer.stop();
+        invokedByPause = true;
         mLastStopTime = SystemClock.elapsedRealtime();
     }
 
@@ -236,8 +249,15 @@ public class ActionActivity extends AppCompatActivity {
         btnStart.setEnabled(false);
         stopLocationService();
         mChronometer.stop();
-        mLastStopTime = 0;
+        initializeAction();
         chronoStart();
+    }
+
+    private void initializeAction() {
+        mLastStopTime = 0;
+        totalDistance_txt.setText("0");
+        dbHelper.removeRunRecords(runId);
+        runId = "run_" + generateRunId(3);
     }
 
 
@@ -249,8 +269,7 @@ public class ActionActivity extends AppCompatActivity {
 
     private void stopLocationService(){
         Log.i(TAG, "stopLocationService ..........");
-        //MyLocationService myLocService = new MyLocationService();
-        //myLocService.stopLocationUpdates();
+
         Intent iService =new Intent(ActionActivity.this, MyLocationService.class);
         boolean result = stopService(iService);
         if(result){
@@ -280,7 +299,22 @@ public class ActionActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(ActionActivity.this);
+        builder.setMessage("Koşu Sonlandırılacak ve Kayıt Oluşturulmayacak");
+        builder.setPositiveButton("Onayla", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                finish();
+            }
+        });
 
+        builder.setNegativeButton("Vazgeç", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        builder.show();
     }
 
     private void goResult() {

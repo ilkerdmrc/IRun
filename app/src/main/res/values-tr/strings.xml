@@ -26,4 +26,5 @@
     <string name="last_run_result_fragment_title">Koşu Özeti</string>
     <string name="action_activity_kilometer">Kilometre</string>
     <string name="action_activity_meter">METRE</string>
+    <string name="warmup_fragment_title">Egzersizler</string>
 </resources>

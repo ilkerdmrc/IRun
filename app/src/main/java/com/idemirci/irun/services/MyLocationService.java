@@ -1,24 +1,18 @@
 package com.idemirci.irun.services;
 
+import android.Manifest;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -35,11 +29,10 @@ import com.google.android.gms.tasks.Task;
 
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 public class MyLocationService extends Service {
 
-    private static final String TAG = "MyLocationService";//MyLocationService.class.getSimpleName();
+    private static final String TAG = "MyLog";//MyLocationService.class.getSimpleName();
 
     /**
      * Code used in requesting runtime permissions.
@@ -54,7 +47,7 @@ public class MyLocationService extends Service {
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
-    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 4000;
+    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
 
     /**
      * The fastest rate for active location updates. Exact. Updates will never be more frequent
@@ -205,6 +198,17 @@ public class MyLocationService extends Service {
                         Log.i(TAG, "All location settings are satisfied.");
 
                         //noinspection MissingPermission
+                        if (ActivityCompat.checkSelfPermission(MyLocationService.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                                && ActivityCompat.checkSelfPermission(MyLocationService.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            return;
+                        }
                         mFusedLocationClient.requestLocationUpdates(mLocationRequest,
                                 mLocationCallback, Looper.myLooper());
 
@@ -255,44 +259,23 @@ public class MyLocationService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-    }
+        Log.i(TAG, "....onDestroy...");
 
-
-
-
-    /**
-     * Removes location updates from the FusedLocationApi.
-     */
-    /*
-    public void stopLocationUpdates() {
-        if (!mRequestingLocationUpdates) {
-            Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
-            return;
+        if(mFusedLocationClient != null){
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            mRequestingLocationUpdates = false;
+                            Log.i(TAG, "inside service removeLocationUpdates....");
+                        }
+                    });
+        }else{
+            Log.i(TAG, "*** inside service mFusedLocationClient is NULL!!!!");
         }
 
-        // It is a good practice to remove location requests when the activity is in a paused or
-        // stopped state. Doing so helps battery performance and is especially
-        // recommended in applications that request frequent location updates.
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        mRequestingLocationUpdates = false;
-                        Log.i(TAG, "mRequestingLocationUpdates - 2");
-                        Log.i(TAG, "stopLocationUpdates: removeLocationUpdates onComplete.");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.i(TAG, "stopLocationUpdates onFailure : " + e.toString());
-                    }
-                })
-        ;
     }
 
-
-    */
 
     @Override
     public boolean stopService(Intent name) {

@@ -107,4 +107,14 @@ public class DBHelper extends SQLiteOpenHelper {
         return formattedDistance;
     }
 
+    /**
+     * Called by chronoRestart method
+     * Deletes runid rows
+     * @param runId
+     */
+    public void removeRunRecords(String runId) {
+        SQLiteDatabase database = this.getWritableDatabase();
+        database.execSQL("DELETE FROM routes WHERE runid = '" + runId + "'");
+        database.close();
+    }
 }
