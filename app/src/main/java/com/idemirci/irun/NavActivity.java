@@ -33,6 +33,7 @@ import com.idemirci.irun.fragments.AboutFragment;
 import com.idemirci.irun.fragments.GuideFragment;
 import com.idemirci.irun.fragments.HistroyFragment;
 import com.idemirci.irun.fragments.RunFragment;
+import com.idemirci.irun.fragments.SettingsFragment;
 
 
 import java.io.InputStream;
@@ -163,8 +164,10 @@ public class NavActivity extends AppCompatActivity
             case R.id.nav_guide:
                 fragment = new GuideFragment();
                 break;
+            case R.id.nav_settings:
+                fragment = new SettingsFragment();
+                break;
         }
-
 
         if(fragment != null){
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();

@@ -7,13 +7,12 @@
     <string name="menu_history">Koşu Geçmişi</string>
     <string name="menu_about">Uyguluma Hakkında</string>
     <string name="menu_communicate_title">Sosyal</string>
-    <string name="menu_share">Paylaş</string>
     <string name="menu_message">Mesajlar</string>
     <string name="menu_logout">Çıkış Yap</string>
     <string name="run_fragment_title">KOŞU</string>
     <string name="about_fragment_title">Uygulama Hakkında</string>
     <string name="history_fragment_title">GEÇMİŞ</string>
-    <string name="share_fragment_title">PAYLAŞ</string>
+    <string name="share_fragment_title">AYARLAR</string>
     <string name="messages_fragment_title">Mesajlar</string>
     <string name="run_fragment_start_button">BAŞLA</string>
     <string name="action_activity_start_button">BAŞLA</string>
@@ -24,7 +23,12 @@
     <string name="history_fragment_total_distance">Katedilen Mesafe</string>
     <string name="history_fragment_total_time">Süre</string>
     <string name="last_run_result_fragment_title">Koşu Özeti</string>
-    <string name="action_activity_kilometer">Kilometre</string>
+    <string name="action_activity_kilometer">KİLOMETRE</string>
     <string name="action_activity_meter">METRE</string>
     <string name="warmup_fragment_title">Egzersizler</string>
+    <string name="settings_fragment_title">AYARLAR</string>
+    <string name="menu_settings">Ayarlar</string>
+    <string name="action_activity_cancel_dialog">Koşu sonlandırılacak ve kayıt oluşturulmayacak</string>
+    <string name="action_activity_cancel">Vazgeç</string>
+    <string name="action_activity_accept">Onayla</string>
 </resources>

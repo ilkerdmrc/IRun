@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Typeface;
@@ -13,6 +14,8 @@ import android.location.Location;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -28,6 +31,7 @@ import android.widget.TextView;
 
 import com.idemirci.irun.database.DBHelper;
 import com.idemirci.irun.services.MyLocationService;
+import com.idemirci.irun.util.PhoneStateReceiver;
 
 import org.w3c.dom.Text;
 
@@ -44,7 +48,14 @@ public class ActionActivity extends AppCompatActivity {
     private Button btnStart, btnPause, btnRestart, btnStop= null;
     private Animation pulse;
 
-    private ImageView clock_icon;
+    ConstraintLayout consLout;
+
+    // Settings
+    boolean isBCActive, phoneState;
+    private final PhoneStateReceiver mybroadcast = new PhoneStateReceiver();
+    SharedPreferences sp;
+    SharedPreferences.Editor edit;
+
     private BroadcastReceiver broadcastReceiver;
     private DBHelper dbHelper;
     private String runId;
@@ -67,6 +78,13 @@ public class ActionActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        isBCActive = sp.getBoolean("isPhoneReceived", false);
+        if(isBCActive) {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("android.intent.action.PHONE_STATE");
+            registerReceiver(mybroadcast, filter);
+            mybroadcast.setActionActivity(this);
+        }
 
         if(broadcastReceiver == null){
             broadcastReceiver = new BroadcastReceiver() {
@@ -78,6 +96,10 @@ public class ActionActivity extends AppCompatActivity {
 
                     if(loc != null){
                         float speed = loc.getSpeed(); // Koşulan süre / Koşulan km Pace'i verir.
+                        action_txt.setText(String.valueOf(speed));
+                        if(speed > 1.25){
+                            consLout.setBackgroundColor(R.drawable.action_background3);
+                        }
                         float deltaDistance = 0;
                         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
                         String dt = sdf.format(new Date());
@@ -127,19 +149,19 @@ public class ActionActivity extends AppCompatActivity {
         registerReceiver(broadcastReceiver,new IntentFilter("location_update"));
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(broadcastReceiver != null){
-            unregisterReceiver(broadcastReceiver);
-        }
-    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_action2);
         getSupportActionBar().hide();
+
+        consLout = (ConstraintLayout) findViewById(R.id.consLout);
+
+        sp = PreferenceManager.getDefaultSharedPreferences(ActionActivity.this);
+        edit = sp.edit();
+        phoneState = sp.getBoolean("isPhoneReceived" , false);
 
         runId = "run_" + generateRunId(3);
         dbHelper = new DBHelper(this);
@@ -216,7 +238,7 @@ public class ActionActivity extends AppCompatActivity {
 
     }
 
-    private void chronoStart() {
+    public void chronoStart() {
         Log.i(TAG, "chronoStart ...");
         startLocationService();
         mChronometer.clearAnimation();
@@ -233,7 +255,7 @@ public class ActionActivity extends AppCompatActivity {
     }
 
 
-    private void chronoPause(){
+    public void chronoPause(){
         Log.i(TAG, "chronoPause ...");
         btnPause.setVisibility(View.GONE);
         btnStart.setVisibility(View.VISIBLE);
@@ -244,7 +266,7 @@ public class ActionActivity extends AppCompatActivity {
         mLastStopTime = SystemClock.elapsedRealtime();
     }
 
-    private void chronoRestart() {
+    public void chronoRestart() {
         Log.i(TAG, "chronoRestart ...");
         btnStart.setEnabled(false);
         stopLocationService();
@@ -300,15 +322,15 @@ public class ActionActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(ActionActivity.this);
-        builder.setMessage("Koşu Sonlandırılacak ve Kayıt Oluşturulmayacak");
-        builder.setPositiveButton("Onayla", new DialogInterface.OnClickListener() {
+        builder.setMessage(R.string.action_activity_cancel);
+        builder.setPositiveButton(R.string.action_activity_accept, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 finish();
             }
         });
 
-        builder.setNegativeButton("Vazgeç", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(R.string.action_activity_cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.cancel();
@@ -329,5 +351,23 @@ public class ActionActivity extends AppCompatActivity {
         lastResultActivity.putExtra("runId",runId);
         lastResultActivity.putExtra("totalTime",totalTime);
         startActivity(lastResultActivity);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try{
+            unregisterReceiver(mybroadcast);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(broadcastReceiver != null){
+            unregisterReceiver(broadcastReceiver);
+        }
     }
 }

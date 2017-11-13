@@ -4,19 +4,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,14 +22,12 @@ import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
@@ -45,10 +40,6 @@ import com.idemirci.irun.SplashActivity;
 import com.idemirci.irun.services.MyLocationService;
 //import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-
 
 public class RunFragment extends Fragment implements OnMapReadyCallback {
 
@@ -59,6 +50,11 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     private BroadcastReceiver broadcastReceiver;
     private Location lastLocation;
     Marker mPositionMarker;
+
+    SharedPreferences sp;
+    SharedPreferences.Editor spEdit;
+
+
 
     public RunFragment(){
 
@@ -143,6 +139,10 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
 
         btnStart.setTypeface(typeface);
 
+        sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        spEdit = sp.edit();
+
+
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -162,7 +162,7 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        mView = inflater.inflate(R.layout.run_fragment, container, false);
+        mView = inflater.inflate(R.layout.fragment_run, container, false);
         return mView;
     }
 
@@ -171,6 +171,16 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         MapsInitializer.initialize(getContext());
         mGoogleMap = googleMap;
+        boolean isMapChanged = sp.getBoolean("isMapChanged", false);
+
+        if(isMapChanged){
+            MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.night);
+            mGoogleMap.setMapStyle(style);
+        }else{
+            MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.light);
+            mGoogleMap.setMapStyle(style);
+        }
+
 /*
         com.luckycatlabs.sunrisesunset.dto.Location location = new com.luckycatlabs.sunrisesunset.dto.Location(40.973248, 28.722694);
         SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(location, "Europe/Istanbul");
@@ -182,8 +192,6 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
         Log.i("x", "Sunrise : " + officialSunrise);
         Log.i("x", "Sunset : " + sunset);
 */
-        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.light);
-        mGoogleMap.setMapStyle(style);
 
 
     }

@@ -8,6 +8,7 @@
     tools:context=".ActionActivity"
     tools:layout_editor_absoluteY="81dp"
     tools:layout_editor_absoluteX="0dp"
+    android:id="@+id/consLout"
     android:background="@drawable/action_background2">
 
 
