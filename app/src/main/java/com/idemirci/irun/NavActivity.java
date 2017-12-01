@@ -1,10 +1,13 @@
 package com.idemirci.irun;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -29,6 +32,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
+import com.idemirci.irun.database.DBHelper;
 import com.idemirci.irun.fragments.AboutFragment;
 import com.idemirci.irun.fragments.GuideFragment;
 import com.idemirci.irun.fragments.HistroyFragment;
@@ -41,12 +45,17 @@ import java.io.InputStream;
 public class NavActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private static final String TAG = "MyLog";
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private GoogleApiClient mGoogleApiClient;
-
+    private DBHelper db;
     private TextView txtUserInfo;
+    private int age,weight;
+    int checkResult;
 
+    SharedPreferences sp;
+    SharedPreferences.Editor edit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +63,12 @@ public class NavActivity extends AppCompatActivity
         setContentView(R.layout.activity_nav);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        db = new DBHelper(NavActivity.this);
+
+        // Inıtialize SharedPrefs
+        sp = PreferenceManager.getDefaultSharedPreferences(NavActivity.this);
+        edit = sp.edit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -68,6 +83,8 @@ public class NavActivity extends AppCompatActivity
 
         // Get User Info from MainActivity as parameters
         String displayName = getIntent().getExtras().getString("displayName");
+        edit.putString("username", displayName);
+        edit.commit();
         String eMail = getIntent().getExtras().getString("eMail");
         String photoUrl = getIntent().getExtras().getString("photoUrl");
 
@@ -107,12 +124,27 @@ public class NavActivity extends AppCompatActivity
                 })
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
+
+        Log.i(TAG, "age : " + age);
+        Log.i(TAG, "weight : " + weight);
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkResult = db.checkTable();
+        if(checkResult == 0){
+            Intent intent = new Intent (NavActivity.this, InfoInsertActivity.class);
+            startActivity(intent);
+        }
     }
 
     @Override
@@ -233,7 +265,4 @@ public class NavActivity extends AppCompatActivity
             imageView.setImageBitmap(result);
         }
     }
-
-
-
 }

@@ -5,6 +5,11 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
+    <string-array name="sex_info">
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
+
     <!-- Nav Menu Strings -->
     <string name="action_settings">Settings</string>
     <string name="title_activity_maps">Map</string>
@@ -48,6 +53,7 @@
     <string name="action_activity_cancel_dialog">Cancelling activity, no result will be stored</string>
     <string name="action_activity_cancel">Cancel</string>
     <string name="action_activity_accept">Accept</string>
+    <string name="title_activity_info_insert">InfoInsertActivity</string>
 
 
 </resources>

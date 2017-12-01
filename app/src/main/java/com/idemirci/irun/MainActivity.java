@@ -24,6 +24,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.idemirci.irun.database.DBHelper;
 
 public class MainActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 1;
@@ -43,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
         googleBtn = (SignInButton) findViewById(R.id.googleBtn);
         prgBar = (ProgressBar) findViewById(R.id.prgBar);
         prgBar.setVisibility(View.INVISIBLE);
-
 
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void signIn() {
+
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }

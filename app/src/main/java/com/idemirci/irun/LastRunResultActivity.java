@@ -29,6 +29,7 @@ public class LastRunResultActivity extends AppCompatActivity {
         TextView total_distance_txt = (TextView) findViewById(R.id.total_distance_txt);
         TextView result_speed_txt = (TextView) findViewById(R.id.result_speed_txt);
         TextView result_time_txt = (TextView) findViewById(R.id.result_time_txt);
+        TextView result_cal_txt = (TextView) findViewById(R.id.result_cal_txt);
         TextView result_date_txt = (TextView) findViewById(R.id.result_date_txt);
 
         dbHelper = new DBHelper(this);
@@ -45,10 +46,11 @@ public class LastRunResultActivity extends AppCompatActivity {
                 Log.i("Feed summary  : ", "Feed summary inside...");
                 float totalDistance = cursor.getFloat(cursor.getColumnIndex("deltaDistance"));
                 float avgSpeed = cursor.getFloat(cursor.getColumnIndex("speed"));
+                float totalCal = cursor.getFloat(cursor.getColumnIndex("deltaCal"));
                 SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
                 String dt = sdf.format(new Date());
 
-                dbHelper.insertRouteSummary(runId, avgSpeed, totalDistance, totalTime, dt);
+                dbHelper.insertRouteSummary(runId, avgSpeed, totalDistance, totalTime, totalCal, dt);
                 Log.i("insertRouteSummary : ", "insertRouteSummary ok...");
 
                 //--- Set Display Values
@@ -58,6 +60,7 @@ public class LastRunResultActivity extends AppCompatActivity {
                 total_distance_txt.setText(formattedTotalDistance);
                 result_speed_txt.setText(formattedAvgSpeed);
                 result_time_txt.setText("" + totalTime);
+                result_cal_txt.setText("" + totalCal);
                 result_date_txt.setText(dt);
             }
         } catch (final Exception e) {
