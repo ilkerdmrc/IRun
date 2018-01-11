@@ -5,6 +5,7 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorIcons">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="black_transparent">#CC000000</color>
     <color name="topbarred">#ff070b</color>
     <color name="lightgoldenrodyellow">	#FAFAD2</color>
     <color name="sapphire">#2E5894</color>
@@ -17,6 +18,9 @@
     <color name="canteloupe">#FFA577</color>
     <color name="whiteish">#FFDEDE</color>
     <color name="dandelion">#F0E130</color>
+    <color name="dandelion_dark">#F08130</color>
+    <color name="dandelion_transparent">#CCF0E130</color>
+    <color name="dandelion_moretransparent">#80F0E130</color>
     <color name="greengray">#4A5A4A</color>
     <color name="mandarin">#ff9400</color>
     <color name="orange">#FFA500</color>

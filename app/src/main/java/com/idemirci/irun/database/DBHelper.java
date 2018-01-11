@@ -6,6 +6,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.google.android.gms.maps.model.LatLng;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.StringTokenizer;
 
@@ -15,14 +21,14 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "test_gps.db";
 
     public DBHelper(Context context) {
-        super(context, DATABASE_NAME, null, 10);
+        super(context, DATABASE_NAME, null, 1);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(
                 "create table routes " +
-                        "(_id integer primary key,runid text, lat text,lng text, deltaDistance real, speed real, deltaCal real, dt datetime default current_timestamp)"
+                        "(_id integer primary key, runid text, lat text,lng text, deltaDistance real, speed real, deltaBpm real, dt datetime default current_timestamp)"
         );
 
         db.execSQL(
@@ -44,7 +50,7 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public boolean insertRouteSummary(String runId, float avgSpeed, float totalDistance, int totalTime, float totalCal, String activityDate) {
+    public boolean insertRouteSummary(String runId, float avgSpeed, float totalDistance, float totalTime, float totalCal, String activityDate) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("runid", runId);
@@ -67,7 +73,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return true;
     }
 
-    public boolean insertRoute(String runId, String lat, String lng, float deltaDistance, float speed, float deltaCal,  String dt) {
+    public boolean insertRoute(String runId, String lat, String lng, float deltaDistance, float speed, float deltaBpm,  String dt) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("runid", runId);
@@ -75,7 +81,7 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put("lng", lng);
         contentValues.put("deltaDistance", deltaDistance);
         contentValues.put("speed", speed);
-        contentValues.put("deltaCal", deltaCal);
+        contentValues.put("deltaBpm", deltaBpm);
         contentValues.put("dt", dt);
         db.insert("routes", null, contentValues);
         return true;
@@ -107,7 +113,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public Cursor getRouteSummaryByRunId(String runId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res = db.rawQuery("select SUM(deltaDistance) as deltaDistance, AVG(speed) as speed, runid as _id, SUM(deltaCal) as deltaCal, dt from routes WHERE runid = '" + runId + "' GROUP BY runid", null);
+        Cursor res = db.rawQuery("select SUM(deltaDistance) as deltaDistance, AVG(speed) as speed, runid as _id, dt from routes WHERE runid = '" + runId + "' GROUP BY runid", null);
         return res;
     }
 
@@ -184,15 +190,23 @@ public class DBHelper extends SQLiteOpenHelper {
         return sex;
     }
 
-    public float getDeltaCal(){
-        float deltaCal = 0;
+    public float getAvgBpm(){
+        float avgBpm = 0;
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("select deltaCal from insertRoute", null);
+        Cursor cursor = db.rawQuery("select AVG(deltaBpm) as avgBpm from routes", null);
 
         if (cursor != null) {
             cursor.moveToFirst();
-            deltaCal = cursor.getFloat(cursor.getColumnIndex("deltaCal"));
+            avgBpm = cursor.getFloat(cursor.getColumnIndex("avgBpm"));
         }
-        return deltaCal;
+        return avgBpm;
     }
+
+    public Cursor getAllLatLng(String runId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res = db.rawQuery("select lat,lng from routes WHERE runid = '" + runId + "'", null);
+        return res;
+    }
+
+
 }

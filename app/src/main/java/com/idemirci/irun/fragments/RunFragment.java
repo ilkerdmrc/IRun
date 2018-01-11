@@ -1,10 +1,12 @@
 package com.idemirci.irun.fragments;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -14,7 +16,9 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,14 +39,23 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.idemirci.irun.ActionActivity;
+import com.idemirci.irun.MainActivity;
 import com.idemirci.irun.R;
 import com.idemirci.irun.SplashActivity;
 import com.idemirci.irun.services.MyLocationService;
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 //import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 
 
 public class RunFragment extends Fragment implements OnMapReadyCallback {
 
+    private static final String TAG = "MyLog";
     GoogleMap mGoogleMap;
     MapView mMapView;
     View mView;
@@ -60,6 +73,11 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        startLocationService();
+    }
 
     @Override
     public void onDestroy() {
@@ -99,6 +117,7 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onResume() {
         super.onResume();
+
         if(broadcastReceiver == null){
             broadcastReceiver = new BroadcastReceiver() {
 
@@ -123,13 +142,14 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startLocationService();
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         getActivity().setTitle(R.string.run_fragment_title);
+
+        startLocationService();
 
         Button btnStart = (Button) getActivity().findViewById(R.id.btnStart);
 
@@ -181,17 +201,21 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
             mGoogleMap.setMapStyle(style);
         }
 
-/*
+
         com.luckycatlabs.sunrisesunset.dto.Location location = new com.luckycatlabs.sunrisesunset.dto.Location(40.973248, 28.722694);
         SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(location, "Europe/Istanbul");
 
         String officialSunrise = calculator.getOfficialSunriseForDate(Calendar.getInstance());
         Calendar officialSunset = calculator.getOfficialSunsetCalendarForDate(Calendar.getInstance());
         String sunset = officialSunset.getTime().toString();
+        String [] sunsetFetch =  sunset.split(" ");
+        String sunsetWithSeconds = sunsetFetch[3];
+        String [] sunsetWithSecondsArray = sunsetWithSeconds.split(":");
+        String sunsetFinal = sunsetWithSecondsArray[0] + ":" + sunsetWithSecondsArray[1];
 
         Log.i("x", "Sunrise : " + officialSunrise);
-        Log.i("x", "Sunset : " + sunset);
-*/
+        Log.i("x", "Sunset : " + sunsetFinal);
+
 
 
     }
@@ -232,7 +256,7 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void startLocationService(){
-        Intent i =new Intent(getActivity().getApplicationContext(),MyLocationService.class);
+        Intent i = new Intent(getActivity().getApplicationContext(),MyLocationService.class);
         getActivity().startService(i);
     }
 
@@ -240,6 +264,7 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
         Intent i =new Intent(getActivity().getApplicationContext(),MyLocationService.class);
         getActivity().stopService(i);
     }
+
 }
 
 

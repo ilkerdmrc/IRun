@@ -47,7 +47,7 @@ public class MyLocationService extends Service {
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
-    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 3000;
+    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 2000;
 
     /**
      * The fastest rate for active location updates. Exact. Updates will never be more frequent
@@ -188,14 +188,14 @@ public class MyLocationService extends Service {
      */
     private void startLocationUpdates() {
         // Begin by checking if the device has the necessary location settings.
-        Log.i(TAG, "startLocationUpdates started...");
+        //Log.i(TAG, "startLocationUpdates started...");
         mRequestingLocationUpdates = true;
-        Log.i(TAG, "mRequestingLocationUpdates - 3");
+       // Log.i(TAG, "mRequestingLocationUpdates - 3");
         mSettingsClient.checkLocationSettings(mLocationSettingsRequest)
                 .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                        Log.i(TAG, "All location settings are satisfied.");
+                      //  Log.i(TAG, "All location settings are satisfied.");
 
                         //noinspection MissingPermission
                         if (ActivityCompat.checkSelfPermission(MyLocationService.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -221,15 +221,15 @@ public class MyLocationService extends Service {
                         int statusCode = ((ApiException) e).getStatusCode();
                         switch (statusCode) {
                             case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-                                        "location settings ");
+                              //  Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
+                              //          "location settings ");
                                 break;
                             case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                                 String errorMessage = "Location settings are inadequate, and cannot be " +
                                         "fixed here. Fix in Settings.";
-                                Log.e(TAG, errorMessage);
+                               // Log.e(TAG, errorMessage);
                                 mRequestingLocationUpdates = false;
-                                Log.i(TAG, "mRequestingLocationUpdates - 1");
+                              //  Log.i(TAG, "mRequestingLocationUpdates - 1");
                         }
 
                         updateUI();
@@ -271,7 +271,7 @@ public class MyLocationService extends Service {
                         }
                     });
         }else{
-            Log.i(TAG, "*** inside service mFusedLocationClient is NULL!!!!");
+           // Log.i(TAG, "*** inside service mFusedLocationClient is NULL!!!!");
         }
 
     }
@@ -279,9 +279,10 @@ public class MyLocationService extends Service {
 
     @Override
     public boolean stopService(Intent name) {
-        Log.i(TAG, "....stopService...");
+       // Log.i(TAG, "....stopService...");
         return super.stopService(name);
     }
+
 }
 
 

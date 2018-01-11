@@ -46,7 +46,9 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".LastRunResultActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".ActionActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
@@ -57,13 +59,12 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".MainActivity"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity android:name=".InfoInsertActivity"
-            android:windowSoftInputMode="adjustResize|stateHidden"/>
-
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".InfoInsertActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
 
     </application>
 

@@ -68,26 +68,33 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.472" />
 
-    <Button
-        android:id="@+id/share_on_face"
-        android:layout_width="200dp"
+    <TextView
+        android:id="@+id/result_avgBpm_txt"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Share it on Facebook"
+        android:text="X Bpm"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.831" />
+        app:layout_constraintVertical_bias="0.529" />
 
-    <Button
-        android:id="@+id/share_on_google"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:text="Share it on Google"
+
+    <TextView
+        android:gravity="center"
+        android:id="@+id/latlngText"
+        android:layout_width="395dp"
+        android:layout_height="223dp"
+        android:text="sdfsf"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.965" />
+        app:layout_constraintVertical_bias="1.0" />
+
 
 </android.support.constraint.ConstraintLayout>

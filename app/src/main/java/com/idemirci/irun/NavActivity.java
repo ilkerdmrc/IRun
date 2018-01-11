@@ -1,5 +1,7 @@
 package com.idemirci.irun;
 
+import android.*;
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,6 +12,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -36,6 +39,7 @@ import com.idemirci.irun.database.DBHelper;
 import com.idemirci.irun.fragments.AboutFragment;
 import com.idemirci.irun.fragments.GuideFragment;
 import com.idemirci.irun.fragments.HistroyFragment;
+import com.idemirci.irun.fragments.MsgFragment;
 import com.idemirci.irun.fragments.RunFragment;
 import com.idemirci.irun.fragments.SettingsFragment;
 
@@ -46,6 +50,7 @@ public class NavActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MyLog";
+    private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private GoogleApiClient mGoogleApiClient;
@@ -63,6 +68,8 @@ public class NavActivity extends AppCompatActivity
         setContentView(R.layout.activity_nav);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        startLocationPermissionRequest();
 
         db = new DBHelper(NavActivity.this);
 
@@ -199,6 +206,10 @@ public class NavActivity extends AppCompatActivity
             case R.id.nav_settings:
                 fragment = new SettingsFragment();
                 break;
+            case R.id.nav_msg:
+                fragment = new MsgFragment();
+                break;
+
         }
 
         if(fragment != null){
@@ -264,5 +275,14 @@ public class NavActivity extends AppCompatActivity
         protected void onPostExecute(Bitmap result) {
             imageView.setImageBitmap(result);
         }
+    }
+
+    private void startLocationPermissionRequest() {
+        ActivityCompat.requestPermissions(NavActivity.this,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                REQUEST_PERMISSIONS_REQUEST_CODE);
+
+        //ActivityCompat.shouldShowRequestPermissionRationale(this,
+          //                     Manifest.permission.ACCESS_FINE_LOCATION);
     }
 }

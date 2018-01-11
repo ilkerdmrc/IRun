@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -23,6 +24,8 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.RequiresApi;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -44,25 +47,29 @@ import com.idemirci.irun.util.PhoneStateReceiver;
 
 import org.w3c.dom.Text;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 public class ActionActivity extends AppCompatActivity {
 
-    public CalorieHelper cHelper = new CalorieHelper();
-    public static final String TAG = "MyLog";
-    private TextView action_txt, totalDistance_txt, kilometer_txt, heartbeat_txt;
+    public static final String TAG = "MyLog"; // Used for Log Tag
+    private TextView action_txt, totalDistance_txt, kilometer_txt;
     private Chronometer mChronometer;
-    long mLastStopTime = 0;
+    private long mLastStopTime = 0;
     private Button btnStart, btnPause, btnRestart, btnStop = null;
     private Animation pulse;
     private int informationResult;
-    private ImageView heartbeat_img;
+    private float currentTotalDistance;
+    private ConstraintLayout action_layout;
 
     // Settings
     boolean isBCActive, phoneState;
-    private final PhoneStateReceiver mybroadcast = new PhoneStateReceiver();
+    private final PhoneStateReceiver mybroadcast = new PhoneStateReceiver(); // Telefonun Çağrı Durumunu Kontrol Eden Class'ın Instance'ı
     SharedPreferences sp;
     SharedPreferences.Editor edit;
 
@@ -70,8 +77,10 @@ public class ActionActivity extends AppCompatActivity {
     private DBHelper dbHelper;
     private String runId;
 
-    private int totalTime;
+    private float totalTime;
     static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    private final static int REQUEST_ID_MULTIPLE_PERMISSIONS=0x2;
 
     static Random rnd = new Random();
     Location prevLocation;
@@ -79,6 +88,11 @@ public class ActionActivity extends AppCompatActivity {
     private boolean invokedByPause;
 
 
+    /**
+     * Generates a random id for the specific activity
+     * @param len
+     * @return
+     */
     private String generateRunId(int len) {
         StringBuilder sb = new StringBuilder(len);
         for (int i = 0; i < len; i++)
@@ -89,7 +103,9 @@ public class ActionActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
         isBCActive = sp.getBoolean("isPhoneReceived", false);
+
         if (isBCActive) {
             IntentFilter filter = new IntentFilter();
             filter.addAction("android.intent.action.PHONE_STATE");
@@ -109,15 +125,18 @@ public class ActionActivity extends AppCompatActivity {
                     if (loc != null) {
                         float deltaBpm;
                         Random rand = new Random();
-                        int speed = rand.nextInt((12 - 2) + 1) + 2;
+                        int speed = rand.nextInt((3 - 2) + 1) + 2;
                         //Log.i(TAG, "random speed" + speed);
 
                         //float speed = loc.getSpeed(); // Koşulan süre / Koşulan km Pace'i verir.
+                        float accuracy = loc.getAccuracy();
+                        Toast.makeText(ActionActivity.this, "Accuracy : " + accuracy ,Toast.LENGTH_SHORT).show();
+
+                        Log.i(TAG, "Accuracy : " + accuracy);
 
                         action_txt.setText(String.valueOf(speed));
 
                         deltaBpm = calculateBpm(speed);
-                        heartbeat_txt.setText(String.valueOf(deltaBpm));
 
                         Log.i(TAG, "CurrentBpm" + deltaBpm);
 
@@ -141,28 +160,18 @@ public class ActionActivity extends AppCompatActivity {
                         Log.i(TAG, "Speed / deltaDistance : " + speed + "  /  " + deltaDistance);
 
 
-
                         String lat = String.valueOf(loc.getLatitude());
                         String lng = String.valueOf(loc.getLongitude());
 
                         Log.i(TAG, "Lat : " + lat);
                         Log.i(TAG, "Lng : " + lng);
 
-                        float deltaTime = deltaDistance / speed;
-
-                        Log.i(TAG, "deltaTime" + deltaTime);
-
-                        float deltaCal = calculateCal(deltaBpm, deltaTime);
 
 
-
-                        // speed = (float) (1 + (Math.random() * 4 )); // TODO : Delete!
-
-
-                        if (dbHelper != null && speed > 0 && deltaDistance > 0 ) {
-                            dbHelper.insertRoute(runId, lat, lng, Math.abs(deltaDistance), speed, deltaCal, dt);
+                        if (dbHelper != null && speed > 0 && deltaDistance > 0 && accuracy < 50 && deltaDistance < 15) {
+                            dbHelper.insertRoute(runId, lat, lng, Math.abs(deltaDistance), speed, deltaBpm, dt);
                             Log.i(TAG, "Lokasyon Data kaydedildi...");
-                            float currentTotalDistance = dbHelper.getCurrentTotalDistance(runId);
+                            currentTotalDistance = dbHelper.getCurrentTotalDistance(runId);
                             if (currentTotalDistance < 1000) {
                                 totalDistance_txt.setText(String.valueOf((int) currentTotalDistance));
                                 kilometer_txt.setText(getResources().getString(R.string.action_activity_meter));
@@ -170,10 +179,10 @@ public class ActionActivity extends AppCompatActivity {
                                 totalDistance_txt.setText(String.valueOf(currentTotalDistance / 1000));
                                 kilometer_txt.setText(getResources().getString(R.string.action_activity_kilometer));
                             }
-
                         } else {
                             Log.i(TAG, "No requirement data to save DB");
                         }
+                        // checkCurrentRunningState(currentTotalDistance, speed); Need Some Work
                     }
                 }
 
@@ -182,18 +191,15 @@ public class ActionActivity extends AppCompatActivity {
         registerReceiver(broadcastReceiver, new IntentFilter("location_update"));
     }
 
-    private float calculateCal(float deltaBpm, float deltaTime) {
-        float deltaCal = 0;
-        String sex = dbHelper.getSex();
-        int age = dbHelper.getAge();
-        int weight = dbHelper.getWeight();
-        if(sex.equals("Male")){
-            deltaCal = (float) (((age * 0.2017) - (weight * 0.09036) + (deltaBpm * 0.6309) - 55.0969)*(deltaTime / 4.184));
-        } else if(sex.equals("Female")){
-            deltaCal = (float) (((age * 0.074) - (weight * 0.05741) + (deltaBpm * 0.4472) - 20.4022)*(deltaTime / 4.184));
+    /*
+    private void checkCurrentRunningState(float currentTotalDistance, float speed) {
+        if (currentTotalDistance > 0 && speed == 0) {
+            chronoPause();
         }
-        return deltaCal;
     }
+    */
+
+
 
     private float calculateBpm(float speed) {
         double result = 0;
@@ -230,6 +236,9 @@ public class ActionActivity extends AppCompatActivity {
             setContentView(R.layout.activity_action2);
             getSupportActionBar().hide();
 
+
+            //checkPermissions();
+
             sp = PreferenceManager.getDefaultSharedPreferences(ActionActivity.this);
             edit = sp.edit();
             phoneState = sp.getBoolean("isPhoneReceived", false);
@@ -245,8 +254,11 @@ public class ActionActivity extends AppCompatActivity {
             totalDistance_txt = (TextView) findViewById(R.id.totalDistance_txt);
             kilometer_txt = (TextView) findViewById(R.id.kilometer_txt);
             pulse = AnimationUtils.loadAnimation(this, R.anim.pulse);
-            heartbeat_img = (ImageView) findViewById(R.id.heartbeat_img);
-            heartbeat_txt = (TextView) findViewById(R.id.heartbeat_txt);
+            action_layout = (ConstraintLayout) findViewById(R.id.action_layout);
+            Random rand = new Random();
+            int imageId = rand.nextInt((1 - 0) + 1) + 0;
+
+
 
 
             AssetManager am = getBaseContext().getApplicationContext().getAssets();
@@ -257,13 +269,16 @@ public class ActionActivity extends AppCompatActivity {
             totalDistance_txt.setTypeface(typeface);
             action_txt.setTypeface(typeface);
             kilometer_txt.setTypeface(typeface);
-            heartbeat_txt.setTypeface(typeface);
+            action_layout.setBackgroundResource(imagesForActivity[imageId]);
+            if(imageId == 0){
+
+            }
+
+
+
 
             chronoStart();
             btnStart.setVisibility(View.GONE);
-
-            Animation pulse = AnimationUtils.loadAnimation(this, R.anim.heart_beat);
-            heartbeat_img.startAnimation(pulse);
 
             btnStart.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -318,6 +333,7 @@ public class ActionActivity extends AppCompatActivity {
 
     public void chronoStart() {
         Log.i(TAG, "chronoStart ...");
+
         startLocationService();
         mChronometer.clearAnimation();
         btnStart.setVisibility(View.GONE);
@@ -379,7 +395,7 @@ public class ActionActivity extends AppCompatActivity {
     }
 
 
-    private int getChronoTime(String chronoText) {
+    private float getChronoTime(String chronoText) {
         int stoppedMilliseconds = 0;
 
         String array[] = chronoText.split(":");
@@ -421,9 +437,9 @@ public class ActionActivity extends AppCompatActivity {
         mChronometer.stop();
         // TODO : Goto Result page
 
-        totalTime = getChronoTime((String) mChronometer.getText());
-        Log.i("Chrono totalTime : ", String.valueOf(totalTime));
-
+        totalTime =  getChronoTime((String) mChronometer.getText());
+        NumberFormat formatter = new DecimalFormat("#0.00");
+        formatter.format(totalTime);
         Intent lastResultActivity = new Intent(ActionActivity.this, LastRunResultActivity.class);
         lastResultActivity.putExtra("runId", runId);
         lastResultActivity.putExtra("totalTime", totalTime);
@@ -483,4 +499,21 @@ public class ActionActivity extends AppCompatActivity {
             unregisterReceiver(broadcastReceiver);
         }
     }
+
+    private void checkPermissions() {
+        int permissionLocation = ContextCompat.checkSelfPermission(ActionActivity.this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION);
+        List<String> listPermissionsNeeded = new ArrayList<>();
+        if (permissionLocation != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
+            if (!listPermissionsNeeded.isEmpty()) {
+                ActivityCompat.requestPermissions(this,
+                        listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]), REQUEST_ID_MULTIPLE_PERMISSIONS);
+            }
+        }
+    }
+
+    public int [] imagesForActivity = {R.drawable.running_man_image_cropped,
+            R.drawable.running_woman_cropped
+    };
 }
