@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -40,6 +41,11 @@ public class DBHelper extends SQLiteOpenHelper {
                 "create table personalInformation " +
                         "(_id integer primary key,age Integer, weight Integer, heartbeat text, totalTime text, sex text)"
         );
+
+        db.execSQL(
+                "create table allLatLngForPoly " +
+                        "(_id integer primary key, runid text, latlng text)"
+        );
     }
 
     @Override
@@ -47,6 +53,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS routes");
         db.execSQL("DROP TABLE IF EXISTS routeSummary");
         db.execSQL("DROP TABLE IF EXISTS personalInformation");
+        db.execSQL("DROP TABLE IF EXISTS allLatLngForPoly");
         onCreate(db);
     }
 
@@ -84,6 +91,15 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put("deltaBpm", deltaBpm);
         contentValues.put("dt", dt);
         db.insert("routes", null, contentValues);
+        return true;
+    }
+
+    public boolean insertLatLngData(String runId, String allLatLng){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("runid", runId);
+        contentValues.put("latlng", allLatLng);
+        db.insert("allLatLngForPoly",null,contentValues);
         return true;
     }
 
@@ -209,4 +225,16 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
 
+
+    public String getAllLatLngAsGson(String runId) {
+        String getAllLatLngAsGson = "";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("select latlng from allLatLngForPoly WHERE runid = '" + runId + "'", null);
+
+        if (cursor != null) {
+            cursor.moveToFirst();
+            getAllLatLngAsGson = cursor.getString(cursor.getColumnIndex("latlng"));
+        }
+        return getAllLatLngAsGson;
+    }
 }

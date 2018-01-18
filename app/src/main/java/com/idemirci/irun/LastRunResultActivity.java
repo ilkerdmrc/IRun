@@ -3,9 +3,11 @@ package com.idemirci.irun;
 import android.app.ActionBar;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
@@ -14,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,11 +37,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PatternItem;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.Gson;
 import com.idemirci.irun.adapters.CustomAndroidGridViewAdapter;
 import com.idemirci.irun.adapters.RouteListAdapter;
 import com.idemirci.irun.database.DBHelper;
 import com.idemirci.irun.fragments.LastRunMapFragment;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.text.DecimalFormat;
@@ -63,6 +69,10 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
     Toolbar toolbar;
     CollapsingToolbarLayout collapsingToolbarLayoutAndroid;
     CoordinatorLayout rootLayoutAndroid;
+    Button last_run_fragment_btn;
+    Fragment denemeFragment = new LastRunMapFragment();
+    String dataStr = "";
+    String runId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +97,8 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
         TextView result_cal_txt = (TextView) findViewById(R.id.lastRunTxt3);
         TextView result_date_txt = (TextView) findViewById(R.id.lastRunTxt4);
         TextView result_speed_txt = (TextView) findViewById(R.id.lastRunTxt5);
+        last_run_fragment_btn = (Button) findViewById(R.id.last_run_fragment_btn);
+
 
         /*
         TextView result_speed_txt = (TextView) findViewById(R.id.result_speed_txt);
@@ -96,11 +108,9 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
         TextView latlntText = (TextView) findViewById(R.id.latlngText);
         TextView result_avgBpm_txt = (TextView) findViewById(R.id.result_avgBpm_txt);*/
 
-
         dbHelper = new DBHelper(this);
 
-
-        String runId = getIntent().getExtras().getString("runId");
+        runId = getIntent().getExtras().getString("runId");
         float totalTime = getIntent().getExtras().getFloat("totalTime");
         float totalTimeFetch = totalTime / 60000;
         Cursor cursor = null;
@@ -135,27 +145,22 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
                 SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
                 String dt = sdf.format(new Date());
 
-                dbHelper.insertRouteSummary(runId, avgSpeed, totalDistance, totalTime, totalBurnedCal, dt);
+                dbHelper.insertRouteSummary(runId, avgSpeed, totalDistance, totalTimeFetch, totalBurnedCal, dt);
                 Log.i("insertRouteSummary : ", "insertRouteSummary ok...");
 
                 //--- Set Display Values
                 String formattedTotalDistance = String.format("%.2f", totalDistance);
                 String formattedAvgSpeed = String.format("%.2f", avgSpeed);
-
-                /*total_distance_txt.setText(formattedTotalDistance);
-                result_speed_txt.setText(formattedAvgSpeed);
-                result_time_txt.setText("" + totalTimeFetch);
-                result_date_txt.setText(dt);
-                result_cal_txt.setText(totalBurnedCal + " cal");
-                result_avgBpm_txt.setText(avgBpm + " bpm");
-                latlntText.setText(sb);
-                */
-
                 total_distance_txt.setText(formattedTotalDistance + " meter");
                 result_speed_txt.setText(formattedAvgSpeed + " m/s");
                 result_time_txt.setText(new DecimalFormat("##.##").format(totalTimeFetch) + " min");
                 result_date_txt.setText(dt);
-                result_cal_txt.setText(new DecimalFormat("##.##").format(totalBurnedCal)+ " cal");
+                if(totalBurnedCal < 0){
+                    Toast.makeText(LastRunResultActivity.this, "There was a problem while calculating the total calorie you've just burned", Toast.LENGTH_LONG).show();
+                    result_cal_txt.setText("ERROR");
+                }else {
+                    result_cal_txt.setText(new DecimalFormat("##.##").format(totalBurnedCal)+ " cal");
+                }
             }
         } catch (final Exception e) {
             Log.e(TAG, "getRouteSummaryByRunId DB ERROR for runId : " + runId + " : "+ e.toString());
@@ -164,6 +169,20 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
             dbHelper.close();
         }
 
+        last_run_fragment_btn.setOnClickListener(new View.OnClickListener() {         // Buttona tıklandığında ActionActivity'den aldığın runid'yi fragmenta yolluyor. Aynı zamanda Db'ye ArrayListe çevrilmiş
+                                                                                      // Daha sonrasında gson objesi olarak tek bir Stringe indirgenmiş halini runId ile birlikte kaydediyor.
+            @Override
+            public void onClick(View view) {
+
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.android_coordinator_layout, denemeFragment);
+                Bundle bundleForRunIdPass = new Bundle();
+                bundleForRunIdPass.putString("runIdForThisRun", runId);
+                denemeFragment.setArguments(bundleForRunIdPass);
+                ft.addToBackStack("Tag").commit();
+                dbHelper.insertLatLngData(runId,dataStr);
+            }
+        });
     }
 
     private float calculateCal(float avgBpm, float totalTimeFetch) {
@@ -191,14 +210,16 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
         MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getBaseContext(), R.raw.night);
         mMap.setMapStyle(style);
 
-        if(allLatLngCursor != null){
+        if(allLatLngCursor != null) {
             allLatLngCursor.moveToFirst();
-            while(allLatLngCursor.moveToNext()){
+            while (allLatLngCursor.moveToNext()) {
                 String lat = allLatLngCursor.getString(allLatLngCursor.getColumnIndex("lat"));
                 String lng = allLatLngCursor.getString(allLatLngCursor.getColumnIndex("lng"));
-                LatLng cors = new LatLng(Double.valueOf(lat),(Double.valueOf(lng)));
+                LatLng cors = new LatLng(Double.valueOf(lat), (Double.valueOf(lng)));
                 allLatsLng.add(cors);
             }
+            dataStr = new Gson().toJson(allLatsLng);
+            Log.i(TAG, "List : " + dataStr);
         }
 
         PolylineOptions polylineOptions = new PolylineOptions();
@@ -237,16 +258,6 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
             Toast.makeText(LastRunResultActivity.this, "You didn't change your position", Toast.LENGTH_SHORT).show();
         }
         mMap.getUiSettings().setAllGesturesEnabled(false);
-
-        collapsingToolbarLayoutAndroid.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Fragment deneme = new LastRunMapFragment();
-                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                ft.replace(R.id.content_main, deneme);
-                ft.commit();
-            }
-        });
     }
 
     private void initInstances() {
@@ -262,5 +273,13 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
         markerOptions.title("START");
         markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.finish2));
         mMap.addMarker(markerOptions);
+
+    }
+
+    @Override
+    public boolean onSupportNavigateUp(){
+        //code it to launch an intent to the activity you want
+        onBackPressed();
+        return true;
     }
 }

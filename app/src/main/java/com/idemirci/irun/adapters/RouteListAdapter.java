@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.idemirci.irun.R;
 
+import java.text.DecimalFormat;
 import java.util.Date;
 
 
@@ -31,14 +32,17 @@ public class RouteListAdapter extends CursorAdapter {
         TextView txtDistance = (TextView) view.findViewById(R.id.txtDistance);
         TextView txtTime = (TextView) view.findViewById(R.id.txtTime);
         TextView txtDate = (TextView) view.findViewById(R.id.txtDate);
+        TextView txtRunID = (TextView) view.findViewById(R.id.txtRunId);
 
 
 
 
         float avgSpeed = cursor.getFloat(cursor.getColumnIndex("avgSpeed"));
         float totalDistance = cursor.getFloat(cursor.getColumnIndex("totalDistance"));
-        String totalTime = cursor.getString(cursor.getColumnIndex("totalTime"));
+        float totalTime = cursor.getFloat(cursor.getColumnIndex("totalTime"));
         String activityDate = cursor.getString(cursor.getColumnIndex("activityDate"));
+        String runId = cursor.getString(cursor.getColumnIndex("_id"));
+
 
 
         String formattedSpeed = String.format("%.2f", avgSpeed);
@@ -53,11 +57,13 @@ public class RouteListAdapter extends CursorAdapter {
 
         txtSpeed.setText(avgSpeedLbl + " : " + formattedSpeed +" m/s" );
         txtDistance.setText(totalDistanceLbl + " : " + formattedDistance + " km");
-        txtTime.setText(totalTimeLbl + " : " + totalTime);
+        txtTime.setText(totalTimeLbl + " : " + new DecimalFormat("##.##").format(totalTime) + " min");
         txtDate.setText(activityDateLbl + " : " + activityDate);
+        txtRunID.setText(runId);
     }
 
     public View newView(Context context, Cursor cursor, ViewGroup parent){
         return LayoutInflater.from(context).inflate(R.layout.data_list, parent,false);
     }
+
 }

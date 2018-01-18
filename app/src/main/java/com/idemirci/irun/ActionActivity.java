@@ -106,7 +106,7 @@ public class ActionActivity extends AppCompatActivity {
 
         isBCActive = sp.getBoolean("isPhoneReceived", false);
 
-        if (isBCActive) {
+        if (!isBCActive) {
             IntentFilter filter = new IntentFilter();
             filter.addAction("android.intent.action.PHONE_STATE");
             registerReceiver(mybroadcast, filter);
@@ -124,11 +124,11 @@ public class ActionActivity extends AppCompatActivity {
 
                     if (loc != null) {
                         float deltaBpm;
-                        Random rand = new Random();
-                        int speed = rand.nextInt((3 - 2) + 1) + 2;
+                        //Random rand = new Random();
+                        //int speed = rand.nextInt((3 - 2) + 1) + 2;
                         //Log.i(TAG, "random speed" + speed);
 
-                        //float speed = loc.getSpeed(); // Koşulan süre / Koşulan km Pace'i verir.
+                        float speed = loc.getSpeed(); // Koşulan süre / Koşulan km Pace'i verir.
                         float accuracy = loc.getAccuracy();
                         Toast.makeText(ActionActivity.this, "Accuracy : " + accuracy ,Toast.LENGTH_SHORT).show();
 
@@ -159,16 +159,13 @@ public class ActionActivity extends AppCompatActivity {
                         prevLocation = loc;
                         Log.i(TAG, "Speed / deltaDistance : " + speed + "  /  " + deltaDistance);
 
-
                         String lat = String.valueOf(loc.getLatitude());
                         String lng = String.valueOf(loc.getLongitude());
 
                         Log.i(TAG, "Lat : " + lat);
                         Log.i(TAG, "Lng : " + lng);
 
-
-
-                        if (dbHelper != null && speed > 0 && deltaDistance > 0 && accuracy < 50 && deltaDistance < 15) {
+                        if (dbHelper != null && speed > 0 && deltaDistance > 0 && accuracy < 50) {
                             dbHelper.insertRoute(runId, lat, lng, Math.abs(deltaDistance), speed, deltaBpm, dt);
                             Log.i(TAG, "Lokasyon Data kaydedildi...");
                             currentTotalDistance = dbHelper.getCurrentTotalDistance(runId);
@@ -255,10 +252,9 @@ public class ActionActivity extends AppCompatActivity {
             kilometer_txt = (TextView) findViewById(R.id.kilometer_txt);
             pulse = AnimationUtils.loadAnimation(this, R.anim.pulse);
             action_layout = (ConstraintLayout) findViewById(R.id.action_layout);
+
             Random rand = new Random();
             int imageId = rand.nextInt((1 - 0) + 1) + 0;
-
-
 
 
             AssetManager am = getBaseContext().getApplicationContext().getAssets();
@@ -273,9 +269,6 @@ public class ActionActivity extends AppCompatActivity {
             if(imageId == 0){
 
             }
-
-
-
 
             chronoStart();
             btnStart.setVisibility(View.GONE);

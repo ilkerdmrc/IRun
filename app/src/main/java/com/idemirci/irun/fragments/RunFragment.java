@@ -194,10 +194,10 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
         boolean isMapChanged = sp.getBoolean("isMapChanged", false);
 
         if(isMapChanged){
-            MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.night);
+            MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.light);
             mGoogleMap.setMapStyle(style);
         }else{
-            MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.light);
+            MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.night);
             mGoogleMap.setMapStyle(style);
         }
 
