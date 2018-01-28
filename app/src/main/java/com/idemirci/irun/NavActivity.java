@@ -141,6 +141,7 @@ public class NavActivity extends AppCompatActivity
     protected void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
+
     }
 
     @Override
@@ -228,6 +229,9 @@ public class NavActivity extends AppCompatActivity
 
         if (id == R.id.nav_logout)
             logOut();
+
+
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

@@ -83,6 +83,8 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+
+
         mMapView = (MapView) findViewById(R.id.mapView);
         if(mMapView != null){
             mMapView.onCreate(null);
@@ -237,13 +239,12 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
         int width = (mMapView.getResources().getDisplayMetrics().widthPixels);
         int height = (mMapView.getResources().getDisplayMetrics().heightPixels);
         int padding = (int) (width * 0.15);
-        LatLngBounds bounds = null;
 
         if(allLatsLng.size() != 0){
             for(LatLng pointsForBound : allLatsLng){
                 builder.include(pointsForBound);
             }
-            bounds = builder.build();
+            LatLngBounds bounds  = builder.build();
 
             LatLng startPoint = allLatsLng.get(0); // Starting Position
             LatLng finishPoint = allLatsLng.get(allLatsLng.size() - 1);// Ending Position
@@ -252,13 +253,14 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
 
             mMap.addMarker(new MarkerOptions().position(startPoint).icon(BitmapDescriptorFactory.defaultMarker(5)));
 
-            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds,width,height,padding);
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height,padding); // newLatLngBounds(LatLngBounds bounds, int width, int height, int padding)
             mMap.moveCamera(cu);
         }else{
             Toast.makeText(LastRunResultActivity.this, "You didn't change your position", Toast.LENGTH_SHORT).show();
         }
         mMap.getUiSettings().setAllGesturesEnabled(false);
     }
+
 
     private void initInstances() {
         rootLayoutAndroid = (CoordinatorLayout) findViewById(R.id.android_coordinator_layout);
@@ -282,4 +284,13 @@ public class LastRunResultActivity extends AppCompatActivity implements OnMapRea
         onBackPressed();
         return true;
     }
+
+   /* @Override
+    public void onBackPressed()
+    {
+        super.onBackPressed();
+        startActivity(new Intent(LastRunResultActivity.this, NavActivity.class));
+        finish();
+    }
+    */
 }

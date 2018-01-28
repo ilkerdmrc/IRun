@@ -67,6 +67,7 @@ public class ActionActivity extends AppCompatActivity {
     private float currentTotalDistance;
     private ConstraintLayout action_layout;
 
+
     // Settings
     boolean isBCActive, phoneState;
     private final PhoneStateReceiver mybroadcast = new PhoneStateReceiver(); // Telefonun Çağrı Durumunu Kontrol Eden Class'ın Instance'ı
@@ -103,6 +104,7 @@ public class ActionActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.i(TAG, "onResume inside...");
 
         isBCActive = sp.getBoolean("isPhoneReceived", false);
 
@@ -113,22 +115,29 @@ public class ActionActivity extends AppCompatActivity {
             mybroadcast.setActionActivity(this);
         }
 
+
         if (broadcastReceiver == null) {
+            Log.i(TAG, "BroadCastReciever inside...");
             broadcastReceiver = new BroadcastReceiver() {
 
                 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive inside...");
+
+
+
+
                     Location loc = (Location) intent.getExtras().get("coordinates");
+
 
                     if (loc != null) {
                         float deltaBpm;
-                        //Random rand = new Random();
-                        //int speed = rand.nextInt((3 - 2) + 1) + 2;
+                        Random rand = new Random();
+                        int speed = rand.nextInt((3 - 2) + 1) + 2;
                         //Log.i(TAG, "random speed" + speed);
 
-                        float speed = loc.getSpeed(); // Koşulan süre / Koşulan km Pace'i verir.
+                        //float speed = loc.getSpeed(); // Koşulan süre / Koşulan km Pace'i verir.
                         float accuracy = loc.getAccuracy();
                         Toast.makeText(ActionActivity.this, "Accuracy : " + accuracy ,Toast.LENGTH_SHORT).show();
 
@@ -165,7 +174,7 @@ public class ActionActivity extends AppCompatActivity {
                         Log.i(TAG, "Lat : " + lat);
                         Log.i(TAG, "Lng : " + lng);
 
-                        if (dbHelper != null && speed > 0 && deltaDistance > 0 && accuracy < 50) {
+                        if (dbHelper != null && speed > 0 && deltaDistance > 0 && accuracy < 25 ) {
                             dbHelper.insertRoute(runId, lat, lng, Math.abs(deltaDistance), speed, deltaBpm, dt);
                             Log.i(TAG, "Lokasyon Data kaydedildi...");
                             currentTotalDistance = dbHelper.getCurrentTotalDistance(runId);
@@ -232,10 +241,6 @@ public class ActionActivity extends AppCompatActivity {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_action2);
             getSupportActionBar().hide();
-
-
-            //checkPermissions();
-
             sp = PreferenceManager.getDefaultSharedPreferences(ActionActivity.this);
             edit = sp.edit();
             phoneState = sp.getBoolean("isPhoneReceived", false);
@@ -471,11 +476,12 @@ public class ActionActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        try {
+        /*try {
             unregisterReceiver(mybroadcast);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        */
     }
 
     @Override

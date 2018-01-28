@@ -1,8 +1,11 @@
 package com.idemirci.irun.services;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.IBinder;
@@ -12,7 +15,13 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import com.google.android.gms.common.api.Api;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -20,6 +29,8 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -103,6 +114,9 @@ public class MyLocationService extends Service {
      */
     private String mLastUpdateTime;
 
+    private GoogleApiClient googleApiClient;
+
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -178,6 +192,7 @@ public class MyLocationService extends Service {
     private void buildLocationSettingsRequest() {
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
         builder.addLocationRequest(mLocationRequest);
+        builder.setAlwaysShow(true);
         mLocationSettingsRequest = builder.build();
     }
 
@@ -190,12 +205,12 @@ public class MyLocationService extends Service {
         // Begin by checking if the device has the necessary location settings.
         //Log.i(TAG, "startLocationUpdates started...");
         mRequestingLocationUpdates = true;
-       // Log.i(TAG, "mRequestingLocationUpdates - 3");
+        // Log.i(TAG, "mRequestingLocationUpdates - 3");
         mSettingsClient.checkLocationSettings(mLocationSettingsRequest)
                 .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                      //  Log.i(TAG, "All location settings are satisfied.");
+                        //  Log.i(TAG, "All location settings are satisfied.");
 
                         //noinspection MissingPermission
                         if (ActivityCompat.checkSelfPermission(MyLocationService.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -221,15 +236,15 @@ public class MyLocationService extends Service {
                         int statusCode = ((ApiException) e).getStatusCode();
                         switch (statusCode) {
                             case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                              //  Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-                              //          "location settings ");
+                                //  Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
+                                //          "location settings ");
                                 break;
                             case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                                 String errorMessage = "Location settings are inadequate, and cannot be " +
                                         "fixed here. Fix in Settings.";
-                               // Log.e(TAG, errorMessage);
+                                // Log.e(TAG, errorMessage);
                                 mRequestingLocationUpdates = false;
-                              //  Log.i(TAG, "mRequestingLocationUpdates - 1");
+                                //  Log.i(TAG, "mRequestingLocationUpdates - 1");
                         }
 
                         updateUI();
@@ -261,7 +276,7 @@ public class MyLocationService extends Service {
         super.onDestroy();
         Log.i(TAG, "....onDestroy...");
 
-        if(mFusedLocationClient != null){
+        if (mFusedLocationClient != null) {
             mFusedLocationClient.removeLocationUpdates(mLocationCallback)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
@@ -270,8 +285,8 @@ public class MyLocationService extends Service {
                             Log.i(TAG, "inside service removeLocationUpdates....");
                         }
                     });
-        }else{
-           // Log.i(TAG, "*** inside service mFusedLocationClient is NULL!!!!");
+        } else {
+            // Log.i(TAG, "*** inside service mFusedLocationClient is NULL!!!!");
         }
 
     }
@@ -279,7 +294,7 @@ public class MyLocationService extends Service {
 
     @Override
     public boolean stopService(Intent name) {
-       // Log.i(TAG, "....stopService...");
+        // Log.i(TAG, "....stopService...");
         return super.stopService(name);
     }
 

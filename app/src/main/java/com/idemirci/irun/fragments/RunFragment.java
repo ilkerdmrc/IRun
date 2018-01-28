@@ -1,10 +1,12 @@
 package com.idemirci.irun.fragments;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -19,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +30,17 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -53,12 +67,14 @@ import java.util.List;
 //import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 
 
-public class RunFragment extends Fragment implements OnMapReadyCallback {
+public class RunFragment extends Fragment implements OnMapReadyCallback ,GoogleApiClient.ConnectionCallbacks{
 
     private static final String TAG = "MyLog";
     GoogleMap mGoogleMap;
     MapView mMapView;
     View mView;
+
+    private boolean registered = true;
 
     private BroadcastReceiver broadcastReceiver;
     private Location lastLocation;
@@ -67,16 +83,23 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     SharedPreferences sp;
     SharedPreferences.Editor spEdit;
 
+    private GoogleApiClient googleApiClient;
 
+    private final static int REQUEST_CHECK_SETTINGS_GPS=0x1;
+    private final static int REQUEST_ID_MULTIPLE_PERMISSIONS=0x2;
 
     public RunFragment(){
 
     }
 
+
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         startLocationService();
+
+        checkPermissions();
     }
 
     @Override
@@ -88,8 +111,17 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onPause() {
         super.onPause();
-        if(broadcastReceiver != null){
+        Log.i(TAG, "OnPause Inıtiated");
+        /*if(broadcastReceiver != null) {
             getActivity().unregisterReceiver(broadcastReceiver);
+
+            Log.i(TAG, "If'in icinde");
+        }
+        */
+
+        if(registered){
+            getActivity().unregisterReceiver(broadcastReceiver);
+            registered = false;
         }
     }
 
@@ -118,11 +150,14 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     public void onResume() {
         super.onResume();
 
+        Log.i(TAG,"OnResume Initiated");
+
         if(broadcastReceiver == null){
             broadcastReceiver = new BroadcastReceiver() {
 
                 @Override
                 public void onReceive(Context context, Intent intent) {
+
                     lastLocation = (Location) intent.getExtras().get("coordinates");
 
                     refreshMap();
@@ -139,10 +174,6 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
         mGoogleMap.clear();
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -186,7 +217,6 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
         return mView;
     }
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         MapsInitializer.initialize(getContext());
@@ -215,8 +245,6 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
 
         Log.i("x", "Sunrise : " + officialSunrise);
         Log.i("x", "Sunset : " + sunsetFinal);
-
-
 
     }
 
@@ -256,16 +284,135 @@ public class RunFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void startLocationService(){
+        Log.i(TAG,"startLocationService Initiated");
         Intent i = new Intent(getActivity().getApplicationContext(),MyLocationService.class);
         getActivity().startService(i);
     }
 
     private void stopLocationService(){
+        Log.i(TAG,"stopLocationService Initiated");
         Intent i =new Intent(getActivity().getApplicationContext(),MyLocationService.class);
         getActivity().stopService(i);
     }
 
+
+    private void checkGpsState(){
+
+        if (googleApiClient == null) {
+            googleApiClient = new GoogleApiClient.Builder(getActivity().getApplicationContext()).addApi(LocationServices.API).build();
+            googleApiClient.connect();
+            LocationRequest locationRequest = LocationRequest.create();
+            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            locationRequest.setInterval(30 * 1000);
+            locationRequest.setFastestInterval(5 * 1000);
+            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
+// **************************
+            builder.setAlwaysShow(true); // this is the key ingredient
+// **************************
+            PendingResult result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
+            result.setResultCallback(new ResultCallback()
+            {
+                @Override
+                public void onResult(Result result)
+                {
+                    final Status status = result.getStatus();
+                    Log.i(TAG, "CODE : " + status.getStatusCode());
+                    final LocationSettingsStates state = ((LocationSettingsResult) result).getLocationSettingsStates();
+                    switch (status.getStatusCode())
+                    {
+                        case LocationSettingsStatusCodes.SUCCESS:
+                            // All location settings are satisfied.
+                            // You can initialize location requests here.
+                            int permissionLocation = ContextCompat
+                                    .checkSelfPermission(getActivity(),
+                                            Manifest.permission.ACCESS_FINE_LOCATION);
+                            if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
+                                startLocationService();
+                            }
+                            break;
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            // Location settings are not satisfied.
+                            // But could be fixed by showing the user a dialog.
+                            try {
+                                // Show the dialog by calling startResolutionForResult(),
+                                // and check the result in onActivityResult().
+                                // Ask to turn on GPS automatically
+                                status.startResolutionForResult(getActivity(),
+                                        REQUEST_CHECK_SETTINGS_GPS);
+                            } catch (IntentSender.SendIntentException e) {
+                                // Ignore the error.
+                            }
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            // Location settings are not satisfied.
+                            // However, we have no way
+                            // to fix the
+                            // settings so we won't show the dialog.
+                            // finish();
+                            break;
+                        /*case LocationSettingsStatusCodes.SUCCESS:
+                            break;
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            try {
+                                status.startResolutionForResult(getActivity(), 1000);
+                                //startLocationService();
+                            } catch (IntentSender.SendIntentException e)
+                            {}
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            break;*/
+                    }
+                }
+            });
+
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG, "ActivityResult Triggered*********");
+        switch (requestCode) {
+            case REQUEST_CHECK_SETTINGS_GPS:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        startLocationService();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        getActivity().finish();
+                        break;
+                }
+                break;
+        }
+    }
+
+    private void checkPermissions(){
+        int permissionLocation = ContextCompat.checkSelfPermission(getActivity(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION);
+        List<String> listPermissionsNeeded = new ArrayList<>();
+        if (permissionLocation != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
+            if (!listPermissionsNeeded.isEmpty()) {
+                ActivityCompat.requestPermissions(getActivity(),
+                        listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]), REQUEST_ID_MULTIPLE_PERMISSIONS);
+            }
+        }else{
+            checkGpsState();
+        }
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        checkPermissions();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
 }
+
+
 
 
 
